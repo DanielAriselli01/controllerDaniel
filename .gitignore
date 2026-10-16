@@ -37,3 +37,4 @@ tests/training/artifacts
 # Jupyter
 .ipynb_checkpoints/
 
+tests_POCs/*
