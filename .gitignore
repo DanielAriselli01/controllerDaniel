@@ -13,14 +13,7 @@ tests_POCs/runs_tests_state/*
 
 *.tar.gz
 
-target/CMakeFiles/state_MAD_module_module.dir/
-target/state_MAD_module.cpp
-target/state_MAD_module.h
-target/state_MAD_module.so
-target/state_MAD_neuron.cpp
-target/state_MAD_neuron.h
-tests_POCs/PLV_Emiliano.py
-tests_POCs/test_receptor_paolo.py
+tests_POCs/*
 
 *.egg-info
 *.whl
