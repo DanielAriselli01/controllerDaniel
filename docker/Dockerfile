@@ -222,9 +222,9 @@ RUN cd ${NRP_SRC_DIR} && bash .ci/11-prepare-build.sh && bash .ci/20-build.sh
 ####################### CEREBELLUM+MODELS #######################
 RUN git clone https://github.com/near-nes/cerebellar-models $CEREBELLUM_PATH \
     && cd $CEREBELLUM_PATH \
-    && git checkout 4403f7e6c91063e6737cc410410d342df9598fa9 \
+    && git checkout b24592f1d20962df94672d9a770c5ccd5a89a60d \
     && pip install --no-deps . \
-    && cd custom_stdp \
+    && cd cerebellar_models/nest_models/custom_stdp \
     && cmake . \
     && make \
     && make install

@@ -54,7 +54,7 @@ class ConnectionsParams(BaseModel):
     )
     mc_out_motor_commands: SingleSynapseParams = Field(
         default_factory=lambda: SingleSynapseParams(
-            weight=0.25,  # 1.0
+            weight=0.005,
             delay=min_delay,
         )
     )
@@ -137,7 +137,7 @@ class ConnectionsParams(BaseModel):
     @computed_field
     @property
     def planner_plan_to_inv(self) -> SingleSynapseParams:
-        return SingleSynapseParams(weight=0.25, delay=self.m1_delay)
+        return SingleSynapseParams(weight=0.005, delay=self.m1_delay)
 
     @computed_field
     @property

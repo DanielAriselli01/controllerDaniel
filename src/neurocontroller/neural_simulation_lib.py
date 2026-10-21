@@ -20,6 +20,7 @@ def setup_environment(master_config: MasterParams):
     """Sets up environment variables if needed (e.g., for NESTML)."""
     os.environ["OMP_NUM_THREADS"] = str(master_config.total_num_virtual_procs)
 
+    # Install custom_stdp_module if not already installed
     try:
         # Check if modules are already installed to prevent errors on reset
         if "eglif_cond_alpha_multisyn" not in nest.Models(mtype="nodes"):
@@ -27,6 +28,21 @@ def setup_environment(master_config: MasterParams):
             log.info("Installed NESTML module", module="custom_stdp_module")
         else:
             log.debug("NESTML module already installed", module="custom_stdp_module")
+    except Exception as e:
+        log.error(
+            "Error installing NESTML module",
+            module="custom_stdp_module",
+            error=str(e),
+            exc_info=True,
+        )
+        log.error(
+            "Ensure custom_stdp_module is compiled and accessible (check LD_LIBRARY_PATH/compilation)."
+        )
+        sys.exit(1)
+    
+    # Install controller_neurons_module if not already installed
+    try:
+        # Check if modules are already installed to prevent errors on reset
         if "tracking_neuron_nestml" not in nest.Models(mtype="nodes"):
             nest.Install("controller_neurons_module")
             log.info("Installed NESTML module", module="controller_neurons_module")
@@ -37,12 +53,12 @@ def setup_environment(master_config: MasterParams):
     except Exception as e:
         log.error(
             "Error installing NESTML module",
-            # module="custom_stdp_module",
+            module="controller_neurons_module",
             error=str(e),
             exc_info=True,
         )
         log.error(
-            "Ensure module is compiled and accessible (check LD_LIBRARY_PATH/compilation)."
+            "Ensure controller_neurons_module is compiled and accessible (check LD_LIBRARY_PATH/compilation)."
         )
         sys.exit(1)
 
