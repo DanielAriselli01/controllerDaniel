@@ -9,6 +9,8 @@ storage:
 simulations:
   basal_activity:
     simulator: nest
+    modules:
+    - custom_stdp_module
     resolution: 1.0
     duration: 2500.0
     seed: 1234
@@ -246,25 +248,13 @@ simulations:
           weight: 0.05
           delay: 5
           receptor_type: 3
-      ascending_axon_to_purkinje_plus:
+      ascending_axon_to_purkinje:
         synapses:
         - model: static_synapse
           weight: 0.41
           delay: 2
           receptor_type: 1
-      ascending_axon_to_purkinje_minus:
-        synapses:
-        - model: static_synapse
-          weight: 0.41
-          delay: 2
-          receptor_type: 1
-      parallel_fiber_to_purkinje_plus:
-        synapses:
-        - model: stdp_synapse_sinexp
-          weight: 0.14
-          delay: 5
-          receptor_type: 1
-      parallel_fiber_to_purkinje_minus:
+      parallel_fiber_to_purkinje:
         synapses:
         - model: stdp_synapse_sinexp
           weight: 0.14
@@ -286,25 +276,13 @@ simulations:
           Aplus: 0.0002
           Aminus: -0.0001 #-0.00008
           receptor_type: 1
-      basket_to_purkinje_plus:
+      basket_to_purkinje:
         synapses:
         - model: static_synapse
           weight: 0.8 #0.44
           delay: 4
           receptor_type: 2
-      basket_to_purkinje_minus:
-        synapses:
-        - model: static_synapse
-          weight: 0.8 #0.44
-          delay: 4
-          receptor_type: 2
-      stellate_to_purkinje_plus:
-        synapses:
-        - model: static_synapse
-          weight: 0.17 #1.64
-          delay: 5
-          receptor_type: 2
-      stellate_to_purkinje_minus:
+      stellate_to_purkinje:
         synapses:
         - model: static_synapse
           weight: 0.17 #1.64
@@ -322,7 +300,7 @@ simulations:
           weight: 0.005
           delay: 4
           receptor_type: 2
-      purkinje_to_dcn_p_plus:
+      purkinje_to_dcn_p:
         synapses:
         - delay: 4.0
           model: static_synapse
@@ -334,7 +312,7 @@ simulations:
           model: static_synapse
           receptor_type: 2
           weight: 0.35
-      purkinje_to_dcn_i_plus:
+      purkinje_to_dcn_i:
         synapses:
         - delay: 4.0
           model: static_synapse
@@ -346,19 +324,13 @@ simulations:
           model: static_synapse
           receptor_type: 2
           weight: 0.02
-      mossy_fibers_to_dcn_p_plus:
+      mossy_fibers_to_dcn_p:
         synapses:
         - delay: 4.0
           model: static_synapse
           receptor_type: 1
           weight: 0.25
-      mossy_fibers_to_dcn_p_minus:
-        synapses:
-        - delay: 4.0
-          model: static_synapse
-          receptor_type: 1
-          weight: 0.25
-      io_to_purkinje_plus:
+      io_to_purkinje:
         synapses:
         - delay: 4.0
           model: static_synapse
@@ -370,31 +342,19 @@ simulations:
           model: static_synapse
           receptor_type: 5
           weight: 800
-      io_to_mli_plus_io_to_basket_cell:
+      io_to_mli_io_to_basket_cell:
         synapses:
         - delay: 40.0
           model: static_synapse
           receptor_type: 3
           weight: 5.0
-      io_to_mli_minus_io_to_basket_cell:
+      io_to_mli_io_to_stellate_cell:
         synapses:
         - delay: 40.0
           model: static_synapse
           receptor_type: 3
           weight: 5.0
-      io_to_mli_plus_io_to_stellate_cell:
-        synapses:
-        - delay: 40.0
-          model: static_synapse
-          receptor_type: 3
-          weight: 5.0
-      io_to_mli_minus_io_to_stellate_cell:
-        synapses:
-        - delay: 40.0
-          model: static_synapse
-          receptor_type: 3
-          weight: 5.0
-      io_to_dcn_p_plus:
+      io_to_dcn_p:
         synapses:
         - delay: 4.0
           model: static_synapse
@@ -406,7 +366,7 @@ simulations:
           model: static_synapse
           receptor_type: 1
           weight: 0.4
-      io_to_dcn_i_plus:
+      io_to_dcn_i:
         synapses:
         - delay: 5.0
           model: static_synapse
@@ -418,7 +378,7 @@ simulations:
           model: static_synapse
           receptor_type: 1
           weight: 0.25
-      dcn_i_to_io_plus:
+      dcn_i_to_io:
         synapses:
         - delay: 25.0
           model: static_synapse

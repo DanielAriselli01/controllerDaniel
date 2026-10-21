@@ -4,7 +4,7 @@ storage:
 simulations:
   basal_activity:
     connection_models:
-      parallel_fiber_to_purkinje_plus:
+      parallel_fiber_to_purkinje:
         synapses:
         - model: stdp_synapse_sinexp
           weight: 0.14
@@ -27,14 +27,6 @@ simulations:
           delay: 5
           Aplus: 0
           Aminus: 0
-          receptor_type: 1
-      parallel_fiber_to_purkinje_minus:
-        synapses:
-        - model: stdp_synapse_sinexp
-          weight: 0.14
-          delay: 5
-          Aplus: 9e-6
-          Aminus: -5e-4
           receptor_type: 1
 
 $import:
