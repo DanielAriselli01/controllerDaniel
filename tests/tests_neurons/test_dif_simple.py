@@ -3,12 +3,12 @@ Test suite for diff_neuron with synaptic delays
 Tests both basic delay handling and the differential mechanism
 """
 
+import os
 from collections import defaultdict
 
 import matplotlib.pyplot as plt
 import nest
 import numpy as np
-import os
 
 
 def test_diff():
@@ -20,7 +20,7 @@ def test_diff():
         nest.resolution = 0.1  # 0.1ms resolution
         nest.print_time = True
 
-        nest.Install("custom_stdp_module")
+        nest.Install("controller_neurons_module")
         return nest.resolution
 
     BURST_SIZE_EXC = 5

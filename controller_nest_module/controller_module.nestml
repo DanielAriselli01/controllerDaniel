@@ -20,7 +20,10 @@ model tracking_neuron_nestml:
         
     update:
         current_step = steps(t)
-        curr_traj = traj[current_step]
+        if current_step < simulation_steps:
+            curr_traj = traj[current_step]
+        else:
+            curr_traj = 0.0
         # Check if neuron is sensitive to the current input sign; if not, set the signal to 0
         if (((pos == true) and (curr_traj < 0)) or ((pos == false) and (curr_traj) > 0)): 
             curr_traj = 0
@@ -260,20 +263,20 @@ model state_neuron_nestml:
         # Save incoming spikes in the two buffers
         i integer = 0
         
-        for i in 0 ... (N_fbk-1) step 1:
+        for i in 0 ... N_fbk step 1:
             current_fbk_input[i] = fbk_spikes[i]
 
         j integer = 0
         
-        for j in 0 ... (N_pred-1) step 1:
+        for j in 0 ... N_pred step 1:
             current_pred_input[j] = pred_spikes[j]
         
         index integer = 0
-        for i in 0 ... (N_fbk-1) step 1:
+        for i in 0 ... N_fbk step 1:
             index = position_count * N_fbk + i
             fbk_buffer[index] = current_fbk_input[i]
         
-        for j in 0 ... (N_pred-1) step 1:
+        for j in 0 ... N_pred step 1:
             index = position_count*N_pred + j
             pred_buffer[index] = current_pred_input[j]
         
@@ -285,17 +288,17 @@ model state_neuron_nestml:
         # Populate count_spikes
         k integer = 0 # Index for bfk_counts
         jump integer = 0 
-        for k in 0 ... (N_fbk-1) step 1:
+        for k in 0 ... N_fbk step 1:
             fbk_counts[k] = 0 # Clean previous value
-            for jump in 0 ... (buffer_steps-1) step 1:
+            for jump in 0 ... buffer_steps step 1:
                 index = N_fbk * jump + k
                 if fbk_buffer[index] != 0:
                     fbk_counts[k] += 1
         
         m integer = 0
-        for m in 0 ... (N_pred-1) step 1:
+        for m in 0 ... N_pred step 1:
             pred_counts[m] = 0
-            for jump in 0 ... (buffer_steps-1) step 1:
+            for jump in 0 ... buffer_steps step 1:
                 index = (N_pred * jump) + m
                 if pred_buffer[index] != 0:
                     pred_counts[m] += 1
@@ -305,15 +308,15 @@ model state_neuron_nestml:
         if N_fbk == 0:
             CV_fbk = 10**6
         else:
-            for k in 0 ... (N_fbk-1) step 1:
+            for k in 0 ... N_fbk step 1:
                 mean_fbk += fbk_counts[k]
             mean_fbk /= N_fbk
             if mean_fbk > 10**(-3):
                 var_fbk = 0.0
-                for k in 0 ... (N_fbk-1) step 1:
+                for k in 0 ... N_fbk step 1:
                     var_fbk += (fbk_counts[k] -mean_fbk)**2
                 var_fbk /= N_fbk
-                CV_fbk = (var_fbk**(1/2))/mean_fbk
+                CV_fbk = (var_fbk**0.5)/mean_fbk
             else:
                 CV_fbk = 3.0
 
@@ -321,16 +324,16 @@ model state_neuron_nestml:
         if N_pred == 0:
             CV_pred = 10**6
         else:
-            for m in 0 ... (N_pred-1) step 1:
+            for m in 0 ... N_pred step 1:
                 mean_pred += pred_counts[m]
             mean_pred /= N_pred
 
             if mean_pred > 10**(-3):
                 var_pred = 0.0
-                for m in 0 ... (N_pred-1) step 1:
+                for m in 0 ... N_pred step 1:
                     var_pred += (pred_counts[m]- mean_pred)**2
                 var_pred /= N_pred
-                CV_pred = ((var_pred**(1/2))/mean_pred)
+                CV_pred = ((var_pred**0.5)/mean_pred)
             else:
                 CV_pred = 3.0
 
@@ -440,7 +443,10 @@ model tracking_neuron_planner_nestml:
         
     update:
         current_step = steps(t)
-        curr_traj = traj[current_step]
+        if current_step < simulation_steps:
+            curr_traj = traj[current_step]
+        else:
+            curr_traj = 0.0
         #print("\n\n{curr_traj}\n")
         #print("Pos: {pos}\n")
         # Check if neuron is sensitive to the current input sign; if not, set the signal to 0

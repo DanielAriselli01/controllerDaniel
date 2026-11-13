@@ -39,7 +39,7 @@ def setup_environment(master_config: MasterParams):
             "Ensure custom_stdp_module is compiled and accessible (check LD_LIBRARY_PATH/compilation)."
         )
         sys.exit(1)
-    
+
     # Install controller_neurons_module if not already installed
     try:
         # Check if modules are already installed to prevent errors on reset
