@@ -49,40 +49,25 @@ To compile the extension modules:
 
 ## Building controller_neurons_module
 
-The controller neurons (e.g. `diff_neuron_nestml`) are **generated with NESTML** from `controller_nest_module/controller_module.nestml`, then compiled as described in *Compilation Instructions*. 
-This requires NEST 3.10 and `nestml==8.3.0`.
+The controller neurons (e.g. `diff_neuron_nestml`) are **generated and compiled with NESTML** from controller_nest_module/controller_module.nestml`. This requires NEST 3.9 and `nestml==8.2.0`, with `nest-config` available in your `PATH` (e.g. `export PATH=<path_to_your_nest>/bin:$PATH`.
 
-1. **Create a folder for the generated code** (at the same level as `build_dir`, inside the tests folder):
+1. **Create a folder for the generated code** (inside the tests folder):
 
    ```
    mkdir nestml_generated
    ```
 
-2. **Generate the C++ code**:
+2. **Generate, compile and install the module**:
 
    ```
-   echo '{"nest_version": "v3.10.0"}' > nestml_generated/nestml_codegen_opts.json
+   echo '{"nest_version": "v3.9.0"}' > nestml_generated/nestml_codegen_opts.json
    nestml --input_path ../controller_nest_module/controller_module.nestml \
           --target_path nestml_generated \
           --target_platform NEST --module_name controller_neurons_module \
           --codegen_opts nestml_generated/nestml_codegen_opts.json
    ```
 
-   NESTML's own build step is expected to fail: only the generated files (`controller_neurons_module.cpp`, `CMakeLists.txt`, `*_nestml.h`) are needed.
-
-3. **Patch the generated headers** (NESTML 8.3.0 defines a helper class more than once when a module contains several neurons):
-
-   ```
-   python ../docker/fix_nestml_duplicate_class.py nestml_generated/*_nestml.h
-   ```
-
-4. **Remove the cache of the failed build**:
-
-   ```
-   rm -rf nestml_generated/CMakeCache.txt nestml_generated/CMakeFiles
-   ```
-
-5. **Compile and install** as in *Compilation Instructions*, replacing `<path_to_custom_stdp>` with `nestml_generated`. Use a separate build directory for each module (e.g. `build_controller`), or clean `build_dir` first.
+   The module is installed in the NEST modules folder and can be loaded with `nest.Install("controller_neurons_module")`.
 
 To regenerate, delete `nestml_generated` and repeat from step 1.
 

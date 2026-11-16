@@ -27,7 +27,7 @@ rbf:
   num_centers: 15
   desired_min_rate: 0.0
   desired_max_rate: 60000.0
-  kp: 1000.0
+  kp: 1.0
   base_rate: 0.0
   buffer_size: 30.0
   sdev_hz: 2400.0
