@@ -157,10 +157,10 @@ ENV CFLAGS=
 
 WORKDIR $DEPS_DIR
 
-####################### NEST 3.9 #######################
-ENV NEST_VERSION=3.9
+####################### NEST 3.10 #######################
+ENV NEST_VERSION=3.10
 
-# Install NEST 3.9
+# Install NEST 3.10
 WORKDIR $DEPS_DIR
 RUN git clone --depth 1 --branch v${NEST_VERSION} https://github.com/nest/nest-simulator/
 WORKDIR ${DEPS_DIR}/nest-simulator
@@ -182,7 +182,7 @@ RUN mkdir -p nest-build \
 
 ENV PYTHONPATH="${NEST_INSTALL_DIR}/lib/python${PYTHON_MAJOR}.${PYTHON_MINOR}/site-packages${PYTHONPATH:+:${PYTHONPATH}}"
 
-# Install Nestml  8.2.0 (need to install after NEST 3.9)
+# Install NESTML 8.3.0 (pinned in constraints.txt; NEST 3.10 requires >= 8.3.0)
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install nestml -c /tmp/constraints.txt
 
@@ -222,7 +222,7 @@ RUN cd ${NRP_SRC_DIR} && bash .ci/11-prepare-build.sh && bash .ci/20-build.sh
 ####################### CEREBELLUM+MODELS #######################
 RUN git clone https://github.com/near-nes/cerebellar-models $CEREBELLUM_PATH \
     && cd $CEREBELLUM_PATH \
-    && git checkout b24592f1d20962df94672d9a770c5ccd5a89a60d \
+    && git checkout 37c65202da1c33f29f77a090fd3be78ebfe9971b \
     && pip install --no-deps . \
     && cd cerebellar_models/nest_models/custom_stdp \
     && cmake . \
@@ -232,16 +232,39 @@ RUN git clone https://github.com/near-nes/cerebellar-models $CEREBELLUM_PATH \
 RUN git config --global --add safe.directory $CEREBELLUM_PATH 
 
 ####################### CONTROLLER NEURON MODELS #######################
+# NESTML 8.3.0 + multi-neuron module workaround (see docker/fix_nestml_duplicate_class.py).
 COPY --chown=${USERNAME} ./controller_nest_module /tmp/controller_nest_module
 ENV OMPI_MCA_plm=^rsh
+ENV CONTROLLER_MODULE_NAME=controller_neurons_module
 
+# Code generation. NESTML's internal auto-build is expected to FAIL here
 RUN echo "{\"nest_version\": \"v${NEST_VERSION}.0\"}" > /tmp/nestml_codegen_opts.json \
-    && nestml \
+    && ( nestml \
        --input_path /tmp/controller_nest_module/controller_module.nestml \
        --target_path /tmp/controller_nest_module \
        --target_platform NEST \
-       --module_name controller_neurons_module \
-       --codegen_opts /tmp/nestml_codegen_opts.json
+       --module_name ${CONTROLLER_MODULE_NAME} \
+       --codegen_opts /tmp/nestml_codegen_opts.json \
+       || echo "[info] NESTML auto-build failed as expected, continuing with patch + manual build" ) \
+    && cd /tmp/controller_nest_module \
+    && test -f ${CONTROLLER_MODULE_NAME}.cpp \
+    && test -f CMakeLists.txt \
+    && ls *_nestml.h > /dev/null
+
+# Patch the generated headers: wrap the duplicated helper class in a shared guard.
+COPY --chown=${USERNAME} docker/fix_nestml_duplicate_class.py /tmp/fix_nestml_duplicate_class.py
+RUN cd /tmp/controller_nest_module \
+    && python3 /tmp/fix_nestml_duplicate_class.py *_nestml.h \
+    && unpatched="$(grep -l 'class DataAccessFunctorForInlineExpressions' *_nestml.h \
+                    | xargs -r grep -L NESTML_DATA_ACCESS_FUNCTOR_FOR_INLINE_EXPRESSIONS_GUARD)" \
+    && if [ -n "$unpatched" ]; then echo "[error] unpatched headers: $unpatched"; exit 1; fi
+
+# Build + install (after cleaning the cache, otherwise CMake will try to reuse the failed auto-build config)
+RUN cd /tmp/controller_nest_module \
+    && rm -rf CMakeCache.txt CMakeFiles \
+    && cmake -Dwith-nest=${NEST_INSTALL_DIR}/bin/nest-config . \
+    && make -j$(nproc) \
+    && make install
 
 FROM builder AS package_install
 WORKDIR /tmp/pkg
@@ -250,6 +273,12 @@ COPY pyproject.toml README.md ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install -r pyproject.toml -c /tmp/constraints.txt --no-build-isolation \
     --extra-index-url https://download.pytorch.org/whl/cpu
+
+# patch load.modules() in bsb-nest to avoid exceptions when loading modules in NEST 3.10 (bsb 7.6.1)
+COPY --chown=${USERNAME} docker/bsb-nest-7.6.1-nest310-exceptions.patch /tmp/bsb-nest-nest310.patch
+RUN cd "$(python -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')" \
+    && patch -p3 --forward < /tmp/bsb-nest-nest310.patch \
+    && rm -f bsb_nest/__pycache__/adapter.*.pyc
 
 # final runtime image
 FROM base AS runtime

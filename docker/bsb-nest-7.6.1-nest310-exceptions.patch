@@ -1,0 +1,24 @@
+--- a/packages/bsb-nest/bsb_nest/adapter.py	2026-10-20 12:16:39.807700799 +0200
++++ b/packages/bsb-nest/bsb_nest/adapter.py	2026-10-20 12:16:39.819977862 +0200
+@@ -132,15 +132,18 @@
+                 nest.Install(module)
+                 self.loaded_modules.add(module)
+             except Exception as e:
+-                if e.errorname == "DynamicModuleManagementError":
+-                    if "loaded already" in e.message:
++                # NEST >= 3.10 exceptions carry neither `errorname` nor `message`
++                errorname = getattr(e, "errorname", type(e).__name__)
++                message = getattr(e, "message", str(e))
++                if errorname == "DynamicModuleManagementError":
++                    if "loaded already" in message:
+                         # Modules stay loaded in between `ResetKernel` calls.
+                         # If the module is not in the `loaded_modules` set, then
+                         # it's the first time this `reset`/`prepare` cycle,
+                         # and there is no user-side issue.
+                         if module in self.loaded_modules:
+                             warn(f"Already loaded '{module}'.", KernelWarning)
+-                    elif "file not found" in e.message:
++                    elif "file not found" in message:
+                         raise NestModuleError(f"Module {module} not found") from None
+                     else:
+                         raise
